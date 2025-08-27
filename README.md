@@ -2,6 +2,34 @@
 
 # UVAtlas - isochart texture atlasing
 
+## TODO: Cross-Platform Command-Line Tools
+
+With the UVAtlas library and headers now available for Linux builds, you can implement your own cross-platform command-line tools:
+
+### What's Available:
+- **Core Library Functions** (from `UVAtlas.h`):
+  - `UVAtlasCreate` - Main function to create UV atlases
+  - `UVAtlasPartition` - Partition meshes into charts  
+  - `UVAtlasPack` - Pack charts into texture space
+  - `UVAtlasComputeIMT` - Compute IMT (Interpolated Mesh Transform)
+  - `UVAtlasOptimize` - Optimize UV layouts
+
+### Implementation Ideas:
+1. **File Format Support**: OBJ, PLY, STL, custom formats
+2. **Cross-Platform Libraries**: Assimp, OpenGL (optional), stb_image
+3. **Features**: Command-line argument parsing, progress reporting, error handling
+4. **Example Usage**: `uvatlas-tool input.obj -o output.obj --max-stretch 0.1`
+
+### Advantages:
+- ✅ **Cross-Platform**: Works on Windows, Linux, macOS
+- ✅ **No DirectX Dependencies**: Just the cross-platform math library
+- ✅ **Customizable**: Add your own features and file formats
+- ✅ **Lightweight**: Only include what you need
+- ✅ **Modern C++**: Use modern C++ features and libraries
+
+---
+
+
 http://go.microsoft.com/fwlink/?LinkID=512686
 
 Copyright (c) Microsoft Corporation.
