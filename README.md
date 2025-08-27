@@ -44,6 +44,37 @@ These components are designed to work without requiring any content from the leg
 
   * Contains miscellaneous build files and scripts.
 
+## Building
+
+UVAtlas can be built on Windows, Linux, and WSL using various build scripts. For comprehensive build instructions, see [BUILD_GUIDE.md](BUILD_GUIDE.md).
+
+### Quick Start
+
+**Windows:**
+```powershell
+.\build.ps1 -Configuration Release -Platform x64
+```
+
+**Linux/WSL:**
+```bash
+./build.sh --release --x64
+```
+
+**Unified (auto-detects platform):**
+```bash
+./build-unified.sh --release --x64
+```
+
+### Build Scripts
+
+- `build.ps1` - PowerShell script for Windows builds
+- `build.bat` - Batch script for Windows builds  
+- `build.sh` - Shell script for Linux/WSL builds
+- `build-linux.sh` - Linux-specific build script
+- `build-unified.sh` - Cross-platform script with auto-detection
+
+All build scripts are designed to work together without conflicts, using different CMake presets for Windows and Linux builds.
+
 ## Documentation
 
 Documentation is available on the [GitHub wiki](https://github.com/Microsoft/UVAtlas/wiki).

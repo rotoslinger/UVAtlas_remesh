@@ -1,0 +1,7 @@
+/mnt/c/Users/harri/Documents/Github/UVAtlas_remesh/test-direct/CMakeFiles/UVAtlas.dir
+/mnt/c/Users/harri/Documents/Github/UVAtlas_remesh/test-direct/CMakeFiles/edit_cache.dir
+/mnt/c/Users/harri/Documents/Github/UVAtlas_remesh/test-direct/CMakeFiles/rebuild_cache.dir
+/mnt/c/Users/harri/Documents/Github/UVAtlas_remesh/test-direct/CMakeFiles/list_install_components.dir
+/mnt/c/Users/harri/Documents/Github/UVAtlas_remesh/test-direct/CMakeFiles/install.dir
+/mnt/c/Users/harri/Documents/Github/UVAtlas_remesh/test-direct/CMakeFiles/install/local.dir
+/mnt/c/Users/harri/Documents/Github/UVAtlas_remesh/test-direct/CMakeFiles/install/strip.dir

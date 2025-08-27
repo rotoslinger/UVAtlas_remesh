@@ -148,6 +148,7 @@ function Test-Prerequisites {
 function Get-PresetName {
     $preset = "$Platform-$Configuration"
     
+    # Use existing Windows presets (no suffix needed)
     if ($BuildTools) {
         $preset += "-VCPKG"
     }
@@ -184,7 +185,7 @@ function Invoke-Configure {
     )
     
     if ($VerboseOutput) {
-        $cmakeArgs += "--verbose"
+        $cmakeArgs += "--log-level=VERBOSE"
     }
     
     $result = & cmake @cmakeArgs

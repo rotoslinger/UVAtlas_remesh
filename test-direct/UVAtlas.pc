@@ -1,0 +1,11 @@
+prefix=/tmp/test
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: UVAtlas
+Description: UVAtlas Isochart Atlas Library
+URL: https://go.microsoft.com/fwlink/?LinkID=512686
+Version: 1.9.1
+Requires: DirectXMath, DirectX-Headers
+Cflags: -I${includedir}
+Libs: -lUVAtlas

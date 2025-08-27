@@ -1,25 +1,28 @@
 #!/bin/bash
 
-# Simple Linux build script for UVAtlas
+# Simple WSL build script for UVAtlas
 set -e
 
-echo "Building UVAtlas for Linux..."
+# Set VCPKG_ROOT if not provided (default WSL location)
+if [[ -z "$VCPKG_ROOT" ]]; then
+    VCPKG_ROOT="/home/harri/vcpkg"
+    echo "VCPKG_ROOT not set, using default: $VCPKG_ROOT"
+fi
 
-# Set up paths
-VCPKG_ROOT="/home/harri/vcpkg"
+echo "Building UVAtlas for Linux using WSL..."
+echo "VCPKG_ROOT: $VCPKG_ROOT"
+
+# Set up environment
 CMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
 
-echo "VCPKG_ROOT: $VCPKG_ROOT"
-echo "Toolchain: $CMAKE_TOOLCHAIN_FILE"
-
 # Build directory
-BUILD_DIR="out/build/x64-Release-Linux"
-INSTALL_DIR="out/install/x64-Release-Linux"
+BUILD_DIR="out/build/x64-Release-Linux-Library"
+INSTALL_DIR="out/install/x64-Release-Linux-Library"
 
 echo "Build directory: $BUILD_DIR"
 echo "Install directory: $INSTALL_DIR"
 
-# Configure using the exact command that works
+# Configure
 echo "Configuring build..."
 cmake -S . -B "$BUILD_DIR" -G Ninja \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \

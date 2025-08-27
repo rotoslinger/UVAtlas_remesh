@@ -1,7 +1,19 @@
 #!/bin/bash
 
-# UVAtlas Build Script (Shell Version)
-# ===================================
+# UVAtlas Unified Build Script
+# ============================
+# This script can build for both Windows (WSL) and Linux, using appropriate
+# presets and build directories to avoid conflicts.
+
+set -e  # Exit on any error
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+WHITE='\033[1;37m'
+NC='\033[0m' # No Color
 
 # Default values
 CONFIGURATION="Release"
@@ -13,14 +25,6 @@ INSTALL=false
 TEST=false
 VERBOSE=false
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
-WHITE='\033[1;37m'
-NC='\033[0m' # No Color
-
 # Function to print colored output
 print_color() {
     local color=$1
@@ -28,12 +32,32 @@ print_color() {
     echo -e "${color}${message}${NC}"
 }
 
+# Function to detect platform
+detect_platform() {
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        # Check if we're in WSL
+        if grep -qi microsoft /proc/version 2>/dev/null; then
+            echo "wsl"
+        else
+            echo "linux"
+        fi
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        echo "macos"
+    elif [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+        echo "windows"
+    else
+        echo "unknown"
+    fi
+}
+
 # Function to show help
 show_help() {
-    echo "UVAtlas Build Script"
-    echo "==================="
+    echo "UVAtlas Unified Build Script"
+    echo "============================"
     echo
-    echo "Usage: ./build.sh [options]"
+    echo "Usage: ./build-unified.sh [options]"
+    echo
+    echo "This script automatically detects your platform and uses appropriate build settings."
     echo
     echo "Options:"
     echo "  --debug, --release    Build configuration (default: release)"
@@ -47,10 +71,10 @@ show_help() {
     echo "  --help, -h            Show this help message"
     echo
     echo "Examples:"
-    echo "  ./build.sh"
-    echo "  ./build.sh --debug --x64 --tools"
-    echo "  ./build.sh --release --arm64 --clang"
-    echo "  ./build.sh --clean --install --test"
+    echo "  ./build-unified.sh"
+    echo "  ./build-unified.sh --debug --x64 --tools"
+    echo "  ./build-unified.sh --release --arm64 --clang"
+    echo "  ./build-unified.sh --clean --install --test"
     echo
     exit 0
 }
@@ -62,7 +86,8 @@ command_exists() {
 
 # Function to check prerequisites
 check_prerequisites() {
-    print_color $CYAN "Checking prerequisites..."
+    local platform=$1
+    print_color $CYAN "Checking prerequisites for $platform..."
     
     # Check CMake
     if ! command_exists cmake; then
@@ -73,7 +98,11 @@ check_prerequisites() {
     # Check Ninja
     if ! command_exists ninja; then
         print_color $YELLOW "WARNING: Ninja not found. Install Ninja for faster builds."
-        print_color $YELLOW "  Install via: sudo apt-get install ninja-build (Ubuntu/Debian)"
+        if [[ "$platform" == "wsl" || "$platform" == "linux" ]]; then
+            print_color $YELLOW "  Install via: sudo apt-get install ninja-build (Ubuntu/Debian)"
+        else
+            print_color $YELLOW "  Install via: winget install Ninja-build.Ninja (Windows)"
+        fi
         print_color $YELLOW "  Or download from: https://github.com/ninja-build/ninja/releases"
     else
         ninja_version=$(ninja --version 2>/dev/null)
@@ -89,49 +118,29 @@ check_prerequisites() {
         fi
     fi
     
+    # Platform-specific checks
+    if [[ "$platform" == "wsl" ]]; then
+        # Check for Visual Studio in WSL
+        if [ "$COMPILER" = "MSVC" ]; then
+            if ! command_exists cl.exe; then
+                print_color $YELLOW "WARNING: MSVC compiler not found. Make sure Visual Studio is installed and vcvars is sourced."
+            fi
+        fi
+    fi
+    
     return 0
 }
 
-# Function to perform WSL build with direct CMake
-perform_wsl_build() {
-    local preset="$PLATFORM-$CONFIGURATION"
-    echo "Using direct CMake for WSL build with VCPKG_ROOT=$VCPKG_ROOT"
-    export CMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
-    
-    echo "DEBUG: CMAKE_TOOLCHAIN_FILE=$CMAKE_TOOLCHAIN_FILE"
-    echo "DEBUG: Checking if toolchain file exists:"
-    ls -la "$CMAKE_TOOLCHAIN_FILE"
-    
-    # Build directory
-    local build_dir="out/build/${preset}-Linux-Library"
-    local install_dir="out/install/${preset}-Linux-Library"
-    
-    echo "DEBUG: Build directory: $build_dir"
-    echo "DEBUG: Install directory: $install_dir"
-    
-    # Configure with direct CMake - using exact command that works
-    echo "DEBUG: Using exact working command"
-    if ! cmake -S . -B "$build_dir" -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="$(pwd)/${install_dir}" -DCMAKE_TOOLCHAIN_FILE="$CMAKE_TOOLCHAIN_FILE"; then
-        echo "ERROR: CMake configuration failed!"
-        return 1
-    fi
-    
-    # Build
-    if ! cmake --build "$build_dir"; then
-        echo "ERROR: Build failed!"
-        return 1
-    fi
-    
-    echo "Build completed successfully!"
-    return 0
-}
-
-# Function to determine preset name
+# Function to determine preset name based on platform
 get_preset_name() {
+    local platform=$1
     local preset="$PLATFORM-$CONFIGURATION"
     
-    # Use existing Linux presets (library-only for cross-compilation)
-    preset="${preset}-Linux-Library"
+    if [[ "$platform" == "wsl" || "$platform" == "linux" ]]; then
+        # Use Linux presets (library-only for cross-compilation)
+        preset="${preset}-Linux-Library"
+    fi
+    # Windows presets don't need a suffix
     
     if [ "$BUILD_TOOLS" = true ]; then
         preset="${preset}-VCPKG"
@@ -165,7 +174,7 @@ configure_build() {
     local cmake_args=("--preset" "$preset")
     
     if [ "$VERBOSE" = true ]; then
-        cmake_args+=("--log-level=VERBOSE")
+        cmake_args+=("--verbose")
     fi
     
     if ! cmake "${cmake_args[@]}"; then
@@ -233,10 +242,12 @@ run_tests() {
 
 # Function to show build information
 show_build_info() {
+    local platform=$1
     print_color $CYAN ""
     print_color $CYAN "Build Configuration:"
+    print_color $WHITE "  Detected Platform: $platform"
     print_color $WHITE "  Configuration: $CONFIGURATION"
-    print_color $WHITE "  Platform: $PLATFORM"
+    print_color $WHITE "  Target Platform: $PLATFORM"
     print_color $WHITE "  Compiler: $COMPILER"
     print_color $WHITE "  Build Tools: $BUILD_TOOLS"
     print_color $WHITE "  Clean: $CLEAN"
@@ -325,39 +336,20 @@ done
 
 # Main execution
 main() {
-    print_color $GREEN "UVAtlas Build Script"
-    print_color $GREEN "==================="
+    local platform=$(detect_platform)
     
-    show_build_info
+    print_color $GREEN "UVAtlas Unified Build Script"
+    print_color $GREEN "============================"
+    
+    show_build_info "$platform"
     
     # Check prerequisites
-    if ! check_prerequisites; then
+    if ! check_prerequisites "$platform"; then
         exit 1
     fi
     
-    # Check if we're doing a WSL build
-    if [[ -n "$VCPKG_ROOT" ]]; then
-        print_color $CYAN "Detected WSL build with VCPKG_ROOT=$VCPKG_ROOT"
-        echo
-        
-        # Clean if requested
-        if [ "$CLEAN" = true ]; then
-            clean_build_directory
-        fi
-        
-        # Perform WSL build
-        if ! perform_wsl_build; then
-            exit 1
-        fi
-        echo
-        
-        print_color $GREEN "WSL build completed successfully!"
-        echo
-        exit 0
-    fi
-    
-    # Get preset name for regular builds
-    preset=$(get_preset_name)
+    # Get preset name
+    preset=$(get_preset_name "$platform")
     print_color $CYAN "Using preset: $preset"
     echo
     

@@ -1,5 +1,3 @@
-#!/usr/bin/env pwsh
-
 <#
 .SYNOPSIS
     Cross-platform build script for UVAtlas (Windows and Linux)
