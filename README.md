@@ -27,6 +27,30 @@ With the UVAtlas library and headers now available for Linux builds, you can imp
 - ✅ **Lightweight**: Only include what you need
 - ✅ **Modern C++**: Use modern C++ features and libraries
 
+### macOS Library Build:
+The same approach used for Linux builds should work for macOS:
+
+**Setup:**
+```bash
+# Install dependencies via Homebrew
+brew install cmake ninja git
+
+# Or use vcpkg (same as Linux)
+git clone https://github.com/microsoft/vcpkg.git
+cd vcpkg
+./bootstrap-vcpkg.sh
+./vcpkg install directxmath directx-headers
+```
+
+**Why it works:**
+- ✅ **DirectXMath**: Cross-platform (works on macOS)
+- ✅ **DirectX-Headers**: Cross-platform headers  
+- ✅ **CMake**: Cross-platform build system
+- ✅ **Clang**: Excellent C++ compiler on macOS
+- ✅ **UVAtlas Core**: Pure C++ algorithms (no Windows-specific code)
+
+**Expected output:** Same as Linux - `libUVAtlas.a` static library and headers
+
 ---
 
 
